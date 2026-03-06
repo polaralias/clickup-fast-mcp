@@ -10,6 +10,7 @@ from typing import Iterable
 from fastmcp.client.transports import StdioTransport
 from fastmcp.server import create_proxy
 from fastmcp.server.auth import AccessToken, TokenVerifier
+from starlette.responses import JSONResponse
 
 DEFAULT_LEGACY_REPO_URL = "https://github.com/polaralias/clickup-mcp.git"
 
@@ -151,6 +152,21 @@ def build_server():
 
 
 server = build_server()
+
+
+@server.custom_route("/", methods=["GET", "HEAD"], include_in_schema=False)
+async def root_health(_request):
+    return JSONResponse({"status": "ok", "server": "clickup-fast-mcp"})
+
+
+@server.custom_route("/health", methods=["GET", "HEAD"], include_in_schema=False)
+async def health(_request):
+    return JSONResponse({"status": "ok", "server": "clickup-fast-mcp"})
+
+
+@server.custom_route("/healthz", methods=["GET", "HEAD"], include_in_schema=False)
+async def healthz(_request):
+    return JSONResponse({"status": "ok", "server": "clickup-fast-mcp"})
 
 
 def main() -> None:
