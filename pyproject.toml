@@ -1,11 +1,12 @@
 [project]
 name = "clickup-fast-mcp"
 version = "0.1.0"
-description = "FastMCP Python proxy for clickup-mcp"
+description = "Native FastMCP server for ClickUp"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-  "fastmcp>=3.1.0"
+  "fastmcp>=3.1.0",
+  "requests>=2.32.0"
 ]
 
 [project.scripts]

@@ -1,43 +1,44 @@
 # clickup-fast-mcp
 
-FastMCP Python server for ClickUp, implemented as a parity proxy over the existing `clickup-mcp` runtime.
+Native Python/FastMCP implementation of the ClickUp MCP server.
 
-## What is migrated
+## Runtime model
 
-- Full ClickUp MCP tool surface from `clickup-mcp`
-- Existing ClickUp auth/config env model (the legacy runtime still owns tool execution)
-- No UI routes or OAuth web pages
+- Tool surface is loaded from `tool_manifest_clickup.json` (parity names + input schemas)
+- Tool execution is handled directly in Python over ClickUp APIs (`v2` + `v3`)
+- No upstream sibling repo is required at runtime
 
-## Configuration
+## Project configuration (`fastmcp.json`)
 
-This server forwards through `scripts/clickup_stdio_bridge.mjs`, which boots the
-ClickUp MCP runtime.
+This repository now includes a canonical `fastmcp.json` aligned with FastMCP project configuration docs:
 
-Legacy backend resolution order:
+- `source`: `server.py:mcp`
+- `environment`: uv-managed Python environment from local `pyproject.toml`
+- `deployment`: HTTP runtime defaults (`/mcp`) plus runtime env wiring
 
-1. `CLICKUP_LEGACY_REPO` (if set)
-2. `../clickup-mcp` (sibling repo)
-3. Auto-bootstrap clone into `.vendor/clickup-mcp` (default enabled)
+FastMCP CLI arguments still override config values when needed.
 
-- `CLICKUP_LEGACY_REPO` (optional): absolute path to `clickup-mcp`
-- `CLICKUP_AUTO_BOOTSTRAP` (optional, default `true`): disable with `false`
-- `CLICKUP_LEGACY_REPO_URL` (optional): override bootstrap git URL
-- `CLICKUP_NODE_BIN` / `NODE_BIN` (optional): Node executable
-- All existing `clickup-mcp` env vars are supported and passed through unchanged
+## Runtime env
 
-Auto-bootstrap requires `git` and `npm` in the runtime image.
+- Required:
+  - `CLICKUP_API_TOKEN` (or `apiKey` / `API_KEY`)
+  - `TEAM_ID` for tools that need a workspace/team default
 
-Optional FastMCP bearer auth for HTTP transport:
+- Optional:
+  - `MCP_API_KEY` or `MCP_API_KEYS` for HTTP bearer auth
+  - `CLICKUP_HTTP_TIMEOUT_MS` (default `30000`)
+  - `BASE_URL` (if needed for token verifier metadata)
 
-- `MCP_API_KEY` (single key), or
-- `MCP_API_KEYS` (comma-separated)
-
-## Run
+## Validate and run
 
 ```bash
-# HTTP (default)
-python server.py
+# Validate tool discovery / entrypoint
+fastmcp inspect fastmcp.json
+fastmcp inspect server.py:mcp
 
-# stdio
-FASTMCP_TRANSPORT=stdio python server.py
+# Run from project config
+fastmcp run
+
+# Override transport at runtime
+fastmcp run --transport stdio
 ```
